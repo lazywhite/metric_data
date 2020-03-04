@@ -28,13 +28,7 @@ var (
     bind string
     port int
 )
-var mainLogger *log.Logger
-var mainLogFile *os.File
 
-func initMainLogger(){
-    mainLog := getLogFile("/tmp/.command.log")
-    mainLogger = log.New(mainLog, "[INFO]", log.LstdFlags)
-}
 
 //get keycloak openid
 func authUser(token string) (*gocloak.UserInfo, error){
@@ -70,15 +64,14 @@ func getMetricData(startTS string, endTS string, metric string, username string)
     podPrefix := os.Getenv("POD_PREFIX")
     nsPrefix := os.Getenv("NAMESPACE_PREFIX")
     cName := os.Getenv("CONTAINER_NAME")
-    var path string
+    var queryString string
     if metric == "cpu"{
-        path = fmt.Sprintf(`/query_range?query=avg(rate(container_cpu_usage_seconds_total{container="%s",container!="POD",namespace="%s%s",pod="%s%s"}[5m]))&start=%s&end=%s&step=15`, cName, nsPrefix, username, podPrefix, username, startTS, endTS)
+        queryString = fmt.Sprintf(`query=avg(rate(container_cpu_usage_seconds_total{container="%s",container!="POD",namespace="%s%s",pod="%s%s"}[5m]))&start=%s&end=%s&step=15`, cName, nsPrefix, username, podPrefix, username, startTS, endTS)
     }
     if metric == "mem"{
-        path = fmt.Sprintf(`/query_range?query=container_memory_usage_bytes{container="%s",container!="POD",namespace="%s%s",pod="%s%s"} / container_spec_memory_limit_bytes{container="%s",container!="POD",namespace="%s%s",pod="%s%s"}&start=%s&end=%s&step=15`, cName, nsPrefix, username, podPrefix, username, cName, nsPrefix, username, podPrefix, username, startTS, endTS)
+        queryString = fmt.Sprintf(`query=container_memory_usage_bytes{container="%s",container!="POD",namespace="%s%s",pod="%s%s"} / container_spec_memory_limit_bytes{container="%s",container!="POD",namespace="%s%s",pod="%s%s"}&start=%s&end=%s&step=15`, cName, nsPrefix, username, podPrefix, username, cName, nsPrefix, username, podPrefix, username, startTS, endTS)
     }
-    url := apiURL + path
-    fmt.Println(url)
+    path := apiURL + "/query_range"
 
     client := resty.New()
     resp, err := client.
@@ -86,17 +79,14 @@ func getMetricData(startTS string, endTS string, metric string, username string)
                     R().
                     EnableTrace().
                     SetHeader("Accept", "application/json").
-                    Get(url)
+                    SetQueryString(queryString).
+                    Get(path)
 
-    fmt.Println(resp.StatusCode())
-    fmt.Println(resp.Body())
+    fmt.Println(client.R().URL)
     if err == nil && resp.StatusCode() == 200{
         return resp.Body(), nil
     }else{
-        fmt.Println("###errors#####")
-        mainLogger.SetPrefix("[Error]")
-        mainLogger.Printf("failed to get response: %s", url)
-        return []byte{}, errors.New("failed to get metric data")
+        return resp.Body(), errors.New("failed to get metric data")
     }
 
 }
@@ -122,15 +112,24 @@ func metricHandler(w http.ResponseWriter, r *http.Request) {
             json.NewEncoder(w).Encode(map[string]interface{}{"code": 4, "msg": "no metric name provided or given too much"})
         }
         data, err := getMetricData(startTS[0], endTS[0], metric[0], *userInfo.PreferredUsername)
-        if err != nil{
-            json.NewEncoder(w).Encode(map[string]interface{}{"code": 5, "msg": err.Error()})
-        }else{
+        if err == nil{
             w.Write(data)
+        }else{
+            json.NewEncoder(w).Encode(map[string]interface{}{"code": 5, "msg": err.Error()})
         }
     }else{
         json.NewEncoder(w).Encode(map[string]interface{}{"code": 6, "msg": err.Error()})
 
     }
+}
+
+func usage() {
+    fmt.Fprintf(os.Stderr, `get metric data from prometheus
+Usage: metric_data [-h] [-b bind] [-p port]
+
+Options:
+`)
+    flag.PrintDefaults()
 }
 
 func init(){
@@ -143,9 +142,7 @@ func main() {
 
     address := fmt.Sprintf("%s:%d", bind, port)
     accessLogFile := getLogFile("/tmp/.access.log")
-    initMainLogger()
     defer accessLogFile.Close()
-    defer mainLogFile.Close()
 
     r := mux.NewRouter().StrictSlash(true)
     r.HandleFunc("/metric", metricHandler).Methods("GET")
@@ -156,11 +153,3 @@ func main() {
 }
 
 
-func usage() {
-    fmt.Fprintf(os.Stderr, `get metric data from prometheus
-Usage: metric_data [-h] [-b bind] [-p port]
-
-Options:
-`)
-    flag.PrintDefaults()
-}
