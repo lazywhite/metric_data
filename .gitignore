@@ -1,2 +1,3 @@
 metric_data
 *.log
+env.sh
