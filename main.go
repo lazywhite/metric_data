@@ -101,24 +101,24 @@ func metricHandler(w http.ResponseWriter, r *http.Request) {
         //fmt.Println(args)
         startTS, ok := args["startts"]
         if !ok || len(startTS) != 1{
-            json.NewEncoder(w).Encode(map[string]interface{}{"code": 2, "msg": "no start timestamp provided or given too much"})
+            json.NewEncoder(w).Encode(map[string]interface{}{"status": 2, "msg": "no start timestamp provided or given too much"})
         }
         endTS, ok := args["endts"]
         if  !ok || len(endTS) != 1{
-            json.NewEncoder(w).Encode(map[string]interface{}{"code": 3, "msg": "no end timestamp provided or given too much"})
+            json.NewEncoder(w).Encode(map[string]interface{}{"status": 3, "msg": "no end timestamp provided or given too much"})
         }
         metric, ok := args["metric"]
         if !ok || len(metric) != 1{
-            json.NewEncoder(w).Encode(map[string]interface{}{"code": 4, "msg": "no metric name provided or given too much"})
+            json.NewEncoder(w).Encode(map[string]interface{}{"status": 4, "msg": "no metric name provided or given too much"})
         }
         data, err := getMetricData(startTS[0], endTS[0], metric[0], *userInfo.PreferredUsername)
         if err == nil{
             w.Write(data)
         }else{
-            json.NewEncoder(w).Encode(map[string]interface{}{"code": 5, "msg": err.Error()})
+            json.NewEncoder(w).Encode(map[string]interface{}{"status": 5, "msg": err.Error()})
         }
     }else{
-        json.NewEncoder(w).Encode(map[string]interface{}{"code": 6, "msg": err.Error()})
+        json.NewEncoder(w).Encode(map[string]interface{}{"status": 6, "msg": err.Error()})
 
     }
 }
