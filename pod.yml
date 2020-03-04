@@ -1,0 +1,25 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: ns-lazywhite
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: jupyter-lazywhite
+  namespace: ns-lazywhite
+  labels:
+    app: alpine
+spec:
+  containers:
+  - name: gui3-server
+    image: alpine
+    command: ["sleep", "9999999"]
+    resources:
+        requests:
+            memory: "64Mi"
+            cpu: 1
+        limits:
+            memory: "128Mi"
+            cpu: 2
+
