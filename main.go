@@ -66,11 +66,18 @@ func getMetricData(startTS string, endTS string, metric string, username string)
     cName := os.Getenv("CONTAINER_NAME")
     var queryString string
     if metric == "cpu"{
-        queryString = fmt.Sprintf(`query=avg by (container)(rate(container_cpu_usage_seconds_total{container=~"%s|%s-.*",container!="POD",namespace="%s%s",pod=~"%s%s|%s-.*"}[5m]))&start=%s&end=%s&step=15`,
+        // for k8s 1.17.2
+        //queryString = fmt.Sprintf(`query=avg by (container)(rate(container_cpu_usage_seconds_total{container=~"%s|%s-.*",container!="POD",namespace="%s%s",pod=~"%s%s|%s-.*"}[5m]))&start=%s&end=%s&step=15`,
+
+        // for k8s 1.13
+        queryString = fmt.Sprintf(`query=avg by (container_name)(rate(container_cpu_usage_seconds_total{container_name=~"%s|%s-.*",container_name!="POD",namespace="%s%s",pod_name=~"%s%s|%s-.*"}[5m]))&start=%s&end=%s&step=15`,
         cName, username, nsPrefix, username, podPrefix, username, username, startTS, endTS)
     }
     if metric == "mem"{
-        queryString = fmt.Sprintf(`query=container_memory_usage_bytes{container=~"%s|%s-.*",container!="POD",namespace="%s%s",pod=~"%s%s|%s-.*"} / container_spec_memory_limit_bytes{container=~"%s|%s-.*",container!="POD",namespace="%s%s",pod=~"%s%s|%s-.*"}&start=%s&end=%s&step=15`,
+        // for k8s 1.17
+        //queryString = fmt.Sprintf(`query=container_memory_usage_bytes{container=~"%s|%s-.*",container!="POD",namespace="%s%s",pod=~"%s%s|%s-.*"} / container_spec_memory_limit_bytes{container=~"%s|%s-.*",container!="POD",namespace="%s%s",pod=~"%s%s|%s-.*"}&start=%s&end=%s&step=15`,
+        // for k8s 1.13
+        queryString = fmt.Sprintf(`query=container_memory_usage_bytes{container_name=~"%s|%s-.*",container_name!="POD",namespace="%s%s",pod_name=~"%s%s|%s-.*"} / container_spec_memory_limit_bytes{container_name=~"%s|%s-.*",container_name!="POD",namespace="%s%s",pod_name=~"%s%s|%s-.*"}&start=%s&end=%s&step=15`,
         cName, username, nsPrefix, username, podPrefix, username, username, cName, username, nsPrefix, username, podPrefix, username, username, startTS, endTS)
     }
     path := apiURL + "/query_range"
