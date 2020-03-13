@@ -14,5 +14,6 @@ supported metric
 	mem_usage_bytes
 	gpu_usage_percent
 	gpu_mem_percent
+	gpu_fb_used  (Mib)
 ```
 

@@ -95,26 +95,26 @@ func getMetricData(startTS string, endTS string, metric string, username string)
 	}
 	if metric == "gpu_usage_percent" {
 		// for k8s 1.17.2
-		//queryString = fmt.Sprintf(`query=dcgm_gpu_utilization{container=~"%s|%s-.*",container!="POD",namespace="%s%s",pod=~"%s%s|%s-.*"}&start=%s&end=%s&step=15`,
+		//queryString = fmt.Sprintf(`query=dcgm_gpu_utilization{container=~"%s|%s-.*",container!="POD",pod_namespace="%s%s",pod=~"%s%s|%s-.*"}&start=%s&end=%s&step=15`,
 
 		// for k8s 1.13
-		queryString = fmt.Sprintf(`query=dcgm_gpu_utilization{container_name=~"%s|%s-.*",container_name!="POD",namespace="%s%s",pod_name=~"%s%s|%s-.*"}&start=%s&end=%s&step=15`,
+		queryString = fmt.Sprintf(`query=dcgm_gpu_utilization{container_name=~"%s|%s-.*",container_name!="POD",pod_namespace="%s%s",pod_name=~"%s%s|%s-.*"}&start=%s&end=%s&step=15`,
 			cName, username, nsPrefix, username, podPrefix, username, username, startTS, endTS)
 	}
 	if metric == "gpu_mem_percent" {
 		// for k8s 1.17.2
-		//queryString = fmt.Sprintf(`query=dcgm_mem_copy_utilization{container=~"%s|%s-.*",container!="POD",namespace="%s%s",pod=~"%s%s|%s-.*"}&start=%s&end=%s&step=15`,
+		//queryString = fmt.Sprintf(`query=dcgm_mem_copy_utilization{container=~"%s|%s-.*",container!="POD",pod_namespace="%s%s",pod=~"%s%s|%s-.*"}&start=%s&end=%s&step=15`,
 
 		// for k8s 1.13
-		queryString = fmt.Sprintf(`query=dcgm_mem_copy_utilization{container_name=~"%s|%s-.*",container_name!="POD",namespace="%s%s",pod_name=~"%s%s|%s-.*"}&start=%s&end=%s&step=15`,
+		queryString = fmt.Sprintf(`query=dcgm_mem_copy_utilization{container_name=~"%s|%s-.*",container_name!="POD",pod_namespace="%s%s",pod_name=~"%s%s|%s-.*"}&start=%s&end=%s&step=15`,
 			cName, username, nsPrefix, username, podPrefix, username, username, startTS, endTS)
 	}
 	if metric == "gpu_fb_used" {
 		// for k8s 1.17.2
-		//queryString = fmt.Sprintf(`query=dcgm_fb_used{container=~"%s|%s-.*",container!="POD",namespace="%s%s",pod=~"%s%s|%s-.*"}&start=%s&end=%s&step=15`,
+		//queryString = fmt.Sprintf(`query=dcgm_fb_used{container=~"%s|%s-.*",container!="POD",pod_namespace="%s%s",pod=~"%s%s|%s-.*"}&start=%s&end=%s&step=15`,
 
 		// for k8s 1.13
-		queryString = fmt.Sprintf(`query=dcgm_fb_used{container_name=~"%s|%s-.*",container_name!="POD",namespace="%s%s",pod_name=~"%s%s|%s-.*"}&start=%s&end=%s&step=15`,
+		queryString = fmt.Sprintf(`query=dcgm_fb_used{container_name=~"%s|%s-.*",container_name!="POD",pod_namespace="%s%s",pod_name=~"%s%s|%s-.*"}&start=%s&end=%s&step=15`,
 			cName, username, nsPrefix, username, podPrefix, username, username, startTS, endTS)
 	}
 	path := apiURL + "/query_range"
